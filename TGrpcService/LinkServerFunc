@@ -1,0 +1,40 @@
+using Grpc.Core;
+using GrpcDemo;
+using LinkService;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using static LinkService.Link;
+
+namespace TGrpcService
+{
+    public class LinkServerFunc:LinkBase
+    {       
+        public override Task<Mes> GetMessage(Mes request, ServerCallContext context)
+        {
+            // 处理接收到的消息
+            Mes mes = new Mes();
+            mes.StrReply=LinkFunc.ReplyMes(request.StrRequest);
+            return Task.FromResult(mes);
+        }
+        public override Task<MesList> GetMessageList(Mes request, ServerCallContext context)
+        {
+            // 处理接收到的消息列表
+            MesList mesList = new MesList();
+            mesList.MesList_.AddRange(LinkFunc.ReplyMesList(request.StrRequest));
+            return Task.FromResult(mesList);
+        }
+    }
+    public class GreeterService : Greeter.GreeterBase
+    {
+        public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
+        {
+            return Task.FromResult(new HelloReply
+            {
+                Message = "Greeter Reply: " + request.Name
+            });
+        }
+    }
+}
