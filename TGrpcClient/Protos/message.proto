@@ -1,0 +1,223 @@
+syntax="proto3";
+package TClient.UIToServer;
+option csharp_namespace= "TClient.UIToServer.Message";
+message NullInput{}
+
+message NullReply{}
+
+message IntInput{
+	int32 Input=1;
+}
+message LongInput{
+		int64 Input=1;
+}
+message StringInput{
+	string Input=1;
+}
+message StringAndLongInput{
+		string Input=1;
+	int64 LongInput=2;
+}
+message BoolReply{
+		bool success=1;
+}
+//通用消息返回实体
+message ResultReply{
+	bool success=1;
+	string message=2;
+	string data=3;//数据，jsoN
+}
+message LogInfo{
+    string Content=1;//消息内容
+    int64  LogTimeSpan=2;//发生时间
+    string Level=3;//日志等级
+    string ErrorCode=4;//错误码
+    string Actor=5;//操作员
+    string EventSource=6;//日志来源
+    int32  InstrPos=7;//仪器位置
+    string InstrName=8;//仪器名称
+    int32  LogType=9;//日志类型1：一般日志 2：警告日志
+}
+//仪器状态
+message AnalyzerStatus
+{
+    int32 machinePos = 1;//仪器POS
+    int32 canTest = 2;//0:不可测试  1：可测试
+    int32 canMoveRackLine1 = 3;//急诊轨道0:不可移动  1：可移动
+    int32 canMoveRackLine2 = 4;//一般轨道0:不可移动  1：可移动
+}
+//通知LMS移动样本架
+message RackMoveInput
+{
+    int32 machinePos = 1;//仪器POS
+    int64 rackID=2;//样本架ID
+    int32 nextPos=3;//下个抽样位 急诊为7时推出样本架 其他线体为6时推出 为0 时不可移动样本架
+    int32 CurrPos=4;//下个抽样位 急诊为7时推出样本架 其他线体为6时推出 为0 时不可移动样本架
+}
+//通知LMS排出样本架
+message RackOutInput{
+    int32 machinePos = 1;//仪器POS
+    string rackBarCode=2;//样本架条码
+    string errorCode=3;//样本架是否成功推到排出位置0：成功 其它：异常
+
+}
+
+
+//通知LMS抽样结果
+message SamplingResultInput
+{ 
+    int64 sampleID=1;//样本ID
+    repeated RequestState testList=2;//样本信息列表
+}
+//抽样情况
+message RequestState
+{
+    int64 testID=1;//测试ID
+    int32 samplingState=2;//抽样状态 1成功.其他失败
+    int32 errorCode = 3;//失败原因1，样本余量不足；2，样本针堵针；3，其他仪器原因
+    int64 samplingTime=4;//抽样时间
+    string reagentLot=5;//分配试剂
+}
+//通知LMS测试结果
+message TestResultInput
+{
+    int64 sampleID=1;//样本ID
+    int64 testID=2;//测试ID
+    string result=3;//浓度值 
+    string flag = 4;//旗标
+    string remark = 5;//备注
+    int64 comleteTime = 6;//完成时间 
+    int32 machinePos = 7;//仪器POS 
+    int32 testStatus = 8;//测试状态 0：成功 1：异常 
+}
+
+//测试项目可做次数列表参数
+message TestItemCountList
+{
+    int32 machinePos = 1;//仪器POS
+    repeated TestItemCountModel itemCountList=2;//测试项目可做次数列表
+}
+//测试项目可做测试个数类型
+message TestItemCountModel
+{
+    int32 itemID=1;//测试项目编号
+    int32 dilution =2;//稀释倍数
+    int32 sampleType=3;//样本类型
+    int32 sampleKind=4;//样本架类型 患者:1、定标:3 、质控:2 
+    int32 testLeft=5;//可做测试个数
+}
+
+//测试项目列表参数
+message TestItemList
+{
+    repeated TestItemModel itemList=1;//测试项目列表
+}
+//测试项目类型
+message TestItemModel
+{
+    int32 itemID=1;//测试项目编号
+    int32 sampleType=2;//样本类型
+    int32 sampleKind=3;//样本架类型 患者:1、定标:3 、质控:2 
+}
+
+//下发控制机失败的测试列表
+message FailTestList
+{
+   repeated int64 testeIDs=1;//测试ID
+}
+
+//样本架到达抽样位
+message RackToSPInput
+{
+    int32 machinePos = 1;//仪器POS
+    int64 rackID=2;//样本架ID
+    string rackBarCode=3;//样本架条码
+    int32 rackOrigin=4;//样本架来源  急诊轨道:1 一般轨道:2
+    int64 rackIdInDB=5;//样本架在数据库中的ID
+    int32 rackKind=6;//样本架类型 患者:1、定标:3 、质控:2
+    int32 currentSPPos=7;//当前抽样的位置
+    repeated SampleDetailModel sampleList=8;//样本信息列表
+}
+//样本架测试请求
+message RackTestRequest{
+    int64 rackId=1;//样本架ID
+    int32 machinePos = 2;//仪器POS
+    string rackBarCode=3;//样本架条码
+    int32 rackKind=4;//样本架类型 患者:1、定标:3 、质控:2
+    repeated SampleInfo Samples=5;//样本信息列表
+}
+//测试请求
+message Request{
+    int64 reqId=1;//测试请求ID
+    int32 machinePos=2;//该测试将要到哪个仪器做
+    int64 SampleId=3;//样本ID
+    int32 TestItem=4;//测试项目编号
+}
+message SampleInfo{
+    int32 samplePos=1;//样本位置
+    int64 sampleID=2;//样本ID
+    int32 sampleType=3;//样本类型
+    string sampleNo=4;//样本条码
+    int32 cupType = 5;//样本容器类型
+    int32 sampleDilution = 6;//样本机外稀释倍数 
+    string sampleBarcode=7;//样本条码|质控品信息主键
+    int64 registerDate=8;//保存时间
+    string patientNo=9;//病例号 定标测试为C1-C... 质控为质控品名称
+    repeated Request TestReqs=10;//样本下的测试请求
+}
+//样本类型信息
+message SampleDetailModel
+{
+    int32 samplePos=1;//样本位置
+    int64 sampleID=2;//样本ID
+    int32 sampleType=3;//样本类型
+    string sampleNo=4;//样本条码
+    int32 cupType = 5;//样本容器类型
+    int32 sampleDilution = 6;//样本机外稀释倍数 
+    string sampleBarcode=7;//样本条码|质控品信息主键
+    int64 registerDate=8;//保存时间
+    string patientNo=9;//病例号 定标测试为C1-C... 质控为质控品名称
+    repeated int64 requestInputModelList=10;//测试列表
+}
+
+//样本到达抽样位
+message SampleToSPInput
+{
+    int64 rackID=1;//样本架ID
+    int32 currentSPPos=2;//当前抽样的位置
+    int32 lineType=3;//轨道  急诊轨道:1 一般轨道:2 
+}
+//参数修改记录
+message ParameterChangeLogReply
+{
+    repeated ParameterChangeLogModel changeLogList=1;//参数修改记录
+}
+//参数修改记录详情
+message ParameterChangeLogModel
+{
+    string MacName=1;//仪器名称
+    string ParameterID=2;//参数ID
+    string ParameterName=3;//参数名称
+    string OldValue=4;//旧值
+    string NewValue =5;//新值
+    string UpdateTime=6;//更新时间
+}
+
+message NotifyTestCountInput{
+    int32 MachinePos=1;//仪器位置
+    int32 IntValue=2;//测试个数
+}
+
+message ResultToLISInput{
+    string ReagBatch=1;//试剂批号
+    string Flag=2;//旗标
+    string ReagName=3;//试剂名称
+    string TestItemNo=4;//试剂所用项目编号
+    string RegaExpire =5;//试剂有效期
+    string DilutionFactor=6;//稀释因子
+    string Rlu=7;//rlu
+    string SCO=8;//浓度值或S/CO值或CT或结果
+    int64 CompleteTime=9;//测试完成时间
+    int64 TestID = 10;//测试主键
+
+}
